@@ -1,0 +1,40 @@
+module Mapping where
+
+import Monopig1
+
+data Code = IF [Code] [Code]
+          | REP [Code]
+          | WHILE [Code] [Code]
+          | PUT Int | GET Int
+          | PUSH Int | POP | DUP | SWAP | EXCH
+          | INC | DEC | NEG
+          | ADD | MUL | SUB | DIV
+          | EQL | LTH | GTH | NEQ
+          deriving (Read, Show)
+
+fromCode :: [Code] -> Program' a
+fromCode = hom
+  where
+    hom = foldMap $ \case
+      IF b1 b2 -> branch (hom b1) (hom b2)
+      REP p -> rep (hom p)
+      WHILE t b -> while (hom t) (hom b)
+      PUT i -> put i
+      GET i -> get i
+      PUSH i -> push i
+      POP -> pop
+      DUP -> dup
+      SWAP -> swap
+      EXCH -> exch
+      INC -> inc
+      DEC -> dec
+      ADD -> add
+      MUL -> mul
+      SUB -> sub
+      DIV -> frac
+      EQL -> eq
+      LTH -> lt
+      GTH -> gt
+      NEQ -> neq
+      NEG -> neg
+
