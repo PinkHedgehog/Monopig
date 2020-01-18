@@ -1,6 +1,8 @@
 module Main where
 
-import Lib
+import Monopig4
 
 main :: IO ()
-main = someFunc
+main = do
+    code <- getContents
+    execM $ fromCodeIO $ read code
