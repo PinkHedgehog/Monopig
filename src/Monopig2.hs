@@ -192,6 +192,7 @@ pow = swap <> put 0 <> push 1 <> put 1 <>
       ) <>
       pop <> get 1
 
+f &&& g = \r -> (f r, g r)
 
 {-
 sieve = push 2 <>
