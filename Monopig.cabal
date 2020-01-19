@@ -29,6 +29,7 @@ library
   exposed-modules:
       Lib
       Monopig1
+      Monopig4
   other-modules:
       Paths_Monopig
   hs-source-dirs:

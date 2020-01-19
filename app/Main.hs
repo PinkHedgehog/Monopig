@@ -1,8 +1,21 @@
 module Main where
 
 import Monopig4
+import Control.Monad (when)
+import System.Environment
 
 main :: IO ()
 main = do
-    code <- getContents
-    execM $ fromCodeIO $ read code
+    args <- getArgs
+    if null args
+        then putStrLn "No input files"
+        else do
+            src <- readFile (head args)
+            putStrLn src
+            if (last src == '.' || last src == '\n')
+                then do
+                    let code = read src
+                    print code
+                    vm <- execM $! fromCodeIO code
+                    print vm
+                else print (last src)
