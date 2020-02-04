@@ -1,1 +1,1 @@
-[PRTS "input first number", ASK, PRTS "input second number", ASK, PRTS "\n kek \n", REP [PRT, DUP, INC], PRT]
+[PRTS "input first number", ASK, PRTS "input second number", ASK, REP [PRT, DUP, INC], PRT]

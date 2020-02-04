@@ -1,6 +1,6 @@
 {-# LANGUAGE LambdaCase, GeneralizedNewtypeDeriving, TupleSections #-}
 
-module Monopig4 where
+module Monopig5 where
 
 import Data.Monoid hiding ((<>))
 import Data.Semigroup (Semigroup(..),stimes,Max(..))
@@ -8,9 +8,14 @@ import Data.Vector ((//),(!),Vector,toList)
 import qualified Data.Vector as V (replicate)
 import Control.Monad
 import Control.Monad.Identity
+import Pig
 
-type Stack = [Int]
-type Memory = Vector Int
+
+
+type Stack = [Pig]
+type Memory = Vector Pig
+
+
 
 memSize = 4
 
@@ -33,8 +38,9 @@ data Code = IF [Code] [Code]
           | REP [Code]
           | WHILE [Code] [Code]
           | PUT Int | GET Int
-          | PUSH Int | POP | DUP | SWAP | EXCH
+          | PUSH Pig | POP | DUP | SWAP | EXCH
           | INC | DEC | NEG
+          | CNC
           | ADD | MUL | SUB | DIV | MOD
           | EQL | LTH | GTH | NEQ
           | ASK | PRT | PRTS String
@@ -98,27 +104,28 @@ debug p = unlines . reverse . journal <$> execLog logRun p
 
 
 pop,dup,swap,exch :: Monad m => Program' m a
-put,get,push :: Monad m => Int -> Program' m a
-add,mul,sub,frac,modulo,inc,dec,neg :: Monad m => Program' m a
+put,get:: Monad m => Int -> Program' m a
+push :: (Monad m, Piggable b) => b -> Program' m a
+add,mul,sub,frac,modulo,inc,dec,neg, cnc :: Monad m => Program' m a
 eq,neq,lt,gt :: Monad m => Program' m a
 
 err m = setStatus . Just $ "Error : " ++ m
 
-pop = program POP $ 
+pop = program POP $
     \case x:s -> setStack s
           _   -> err "pop expected an argument."
 
-push x = program (PUSH x) (\s -> setStack (x:s))
+push x = program (PUSH (piggify x)) (\s -> setStack ((piggify x):s))
 
-dup = program DUP $ 
+dup = program DUP $
   \case x:s -> setStack (x:x:s)
         _   -> err "dup expected an argument."
 
-swap = program SWAP $ 
+swap = program SWAP $
   \case x:y:s -> setStack (y:x:s)
         _     -> err "swap expected two arguments."
 
-exch = program EXCH $ 
+exch = program EXCH $
   \case x:y:s -> setStack (y:x:y:s)
         _     -> err "expected two arguments."
 
@@ -133,13 +140,25 @@ indexed c i f = programM c $ if (i < 0 || i >= memSize)
                              else f
 
 app1 c f = program c $
-  \case x:s -> setStack (f x:s)
+  \case (x:xs) -> setStack (f x : xs)
+        -- (PInt x):s -> setStack (PInt (f x) : s)
+        -- (PString _):s -> err $ "PInt expected, PString found"
+        -- (PBool _):s -> err $ "PInt expected, PBool found"
+        -- (PObject _):s -> err $ "PInt expected, PObject found"
         _ -> err $ "operation " ++ show c ++ " expected an argument"
 
+app2 :: Monad m => Code -> (Pig -> Pig -> Pig) -> (Code -> VM a -> m (VM a)) -> Program m a
 app2 c f = program c $
-  \case x:y:s -> setStack (f x y:s)
+  \case x:y:s -> setStack (f x y : s)
+                -- if kindOf x == "PInt" && kindOf y == "PInt"
+                --  then setStack (f x y : s)
+                --  else err $ "PInt expected, " ++ head (filter (/= "PInt") [kindOf x, kindOf y]) ++ " found"
         _ -> err $ "operation " ++ show c ++ " expected two arguments"
 
+-- cnc = undefined
+cnc = app2 CNC f
+    where f :: Pig -> Pig -> Pig
+          f x y = PString $! (show y ++ show x)
 add = app2 ADD (+)
 sub = app2 SUB (flip (-))
 mul = app2 MUL (*)
@@ -174,7 +193,7 @@ while test body p = program (WHILE (toCode test) (toCode body)) (const go) none
                      _ -> err "while expected an argument." vm
 
 ask :: Program' IO a
-ask = program ASK $
+ask = program ASK $!
   \case s -> \vm -> do x <- getLine
                        setStack (read x:s) vm
 
@@ -232,6 +251,7 @@ fromCode = hom
       GTH -> gt
       NEQ -> neq
       NEG -> neg
+      CNC -> cnc
       _ -> mempty
 
 fromCodeIO :: [Code] -> Program' IO a

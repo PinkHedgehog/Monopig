@@ -3,7 +3,7 @@ module Main where
 import Monopig4
 import Control.Monad (when)
 import System.Environment
-
+--[PRTS \"input first number\",ASK,PRTS \"input second number\",ASK,REP [PRT,DUP,INC],PRT]
 main :: IO ()
 main = do
     args <- getArgs
@@ -11,10 +11,10 @@ main = do
         then putStrLn "No input files"
         else do
             src <- readFile (head args)
-            putStrLn src
+            putStrLn . show $ last src
             if (last src == '.' || last src == '\n')
                 then do
-                    let code = read src
+                    let code = read $! init src
                     print code
                     vm <- execM $! fromCodeIO code
                     print vm

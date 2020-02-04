@@ -30,6 +30,8 @@ library
       Lib
       Monopig1
       Monopig4
+      Monopig5
+      Pig
   other-modules:
       Paths_Monopig
   hs-source-dirs:
