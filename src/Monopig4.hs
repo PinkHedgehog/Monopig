@@ -1,5 +1,6 @@
 {-# LANGUAGE LambdaCase, GeneralizedNewtypeDeriving, TupleSections #-}
 
+module Monopig4 where
 
 import Data.Monoid hiding ((<>))
 import Data.Semigroup (Semigroup(..),stimes,Max(..))
