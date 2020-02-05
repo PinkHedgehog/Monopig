@@ -29,6 +29,9 @@ library
   exposed-modules:
       Lib
       Monopig1
+      Monopig4
+      Monopig5
+      Pig
   other-modules:
       Paths_Monopig
   hs-source-dirs:
@@ -37,6 +40,7 @@ library
       base >=4.7 && <5
     , vector
     , text
+    , mtl
   default-language: Haskell2010
 
 executable Monopig-exe
