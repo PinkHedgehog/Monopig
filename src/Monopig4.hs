@@ -174,12 +174,12 @@ while test body p = program (WHILE (toCode test) (toCode body)) (const go) none
                      _ -> err "while expected an argument." vm
 
 ask :: Program' IO a
-ask = program ASK $
+ask = program ASK $!
   \case s -> \vm -> do x <- getLine
                        setStack (read x:s) vm
 
 prt :: Program' IO a
-prt = program PRT $
+prt = program PRT $!
   \case x:s -> \vm -> print x >> return vm
         _ -> err "PRT expected an argument"
 
@@ -242,7 +242,7 @@ fromCodeIO = hom
       REP p -> rep (hom p)
       WHILE t b -> while (hom t) (hom b)
       ASK -> ask
-      PRT -> ask
+      PRT -> prt
       PRTS s -> prtS s
       c -> fromCode [c]
 
